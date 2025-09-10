@@ -35,9 +35,9 @@ class Genre(UUIDMixin, TimeStampedMixin):
         # Следующие два поля отвечают за название модели в интерфейсе
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
-        # indexes = [
-        #     models.Index(fields=['name'], name='genre_name_idx'),
-        # ]
+        indexes = [
+            models.Index(fields=['name'], name='genre_name_idx'),
+        ]
     
     def __str__(self):
         return self.name
@@ -52,9 +52,9 @@ class Person(UUIDMixin, TimeStampedMixin):
         # Следующие два поля отвечают за название модели в интерфейсе
         verbose_name = 'Персонал'
         verbose_name_plural = 'Персонал'
-        # indexes = [
-        #     models.Index(fields=['full_name'], name='person_full_name_idx'),
-        # ]
+        indexes = [
+            models.Index(fields=['full_name'], name='person_full_name_idx'),
+        ]
     
     def __str__(self):
         return self.full_name
@@ -80,17 +80,17 @@ class FilmWork(UUIDMixin, TimeStampedMixin):
         # Следующие два поля отвечают за название модели в интерфейсе
         verbose_name = 'Кинопроизведение'
         verbose_name_plural = 'Кинопроизведения'
-        # indexes = [
-        #     models.Index(fields=['title'], name='film_work_title_idx'),
-        # ]
+        indexes = [
+            models.Index(fields=['title'], name='film_work_title_idx'),
+        ]
 
     def __str__(self):
         return self.title
     
 
 class GenreFilmWork(UUIDMixin):
-    film_work_id = models.ForeignKey('FilmWork', on_delete=models.CASCADE)
-    genre_id = models.ForeignKey('Genre', on_delete=models.CASCADE)
+    film_work = models.ForeignKey('FilmWork', on_delete=models.CASCADE)
+    genre = models.ForeignKey('Genre', on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -105,8 +105,8 @@ class GenreFilmWork(UUIDMixin):
 
 
 class PersonFilmWork(UUIDMixin):
-    film_work_id = models.ForeignKey('FilmWork', on_delete=models.CASCADE)
-    person_id = models.ForeignKey('Person', on_delete=models.CASCADE)
+    film_work = models.ForeignKey('FilmWork', on_delete=models.CASCADE)
+    person = models.ForeignKey('Person', on_delete=models.CASCADE)
     role = models.TextField(_('role'))
     created = models.DateTimeField(auto_now_add=True) 
 
