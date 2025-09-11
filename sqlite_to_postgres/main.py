@@ -21,20 +21,20 @@ def load_from_sqlite_to_postgres(connection: sqlite3.Connection, pg_conn: _conne
     postgres_saver = PostgresSaver(pg_conn)
     sqlite_loader = SQLiteLoader(connection)
 
-    data: list = sqlite_loader.load_film_work()
-    postgres_saver.save_data(data, 'content.film_work')
+    for batch in sqlite_loader.load_film_work():
+        postgres_saver.save_data(batch, 'content.film_work')
 
-    data: list = sqlite_loader.load_genre()
-    postgres_saver.save_data(data, 'content.genre')
+    for batch in sqlite_loader.load_genre():
+        postgres_saver.save_data(batch, 'content.genre')
 
-    data: list = sqlite_loader.load_person()
-    postgres_saver.save_data(data, 'content.person')
+    for batch in sqlite_loader.load_person():
+        postgres_saver.save_data(batch, 'content.person')
 
-    data: list = sqlite_loader.load_genre_fim_work()
-    postgres_saver.save_data(data, 'content.genre_film_work', 'genre_id, film_work_id')
+    for batch in sqlite_loader.load_genre_fim_work():
+        postgres_saver.save_data(batch, 'content.genre_film_work', 'genre_id, film_work_id')
 
-    data: list = sqlite_loader.load_person_fim_work()
-    postgres_saver.save_data(data,'content.person_film_work', 'person_id, film_work_id')
+    for batch in sqlite_loader.load_person_fim_work():
+        postgres_saver.save_data(batch,'content.person_film_work', 'person_id, film_work_id')
 
     logging.info('Данные из sqlite загружены в postgres')
 
