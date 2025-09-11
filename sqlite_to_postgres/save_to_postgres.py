@@ -15,14 +15,21 @@ class PostgresSaver:
     def __init__(self, conn):
         self.conn: psycopg.connection = conn
         self.cursor = self.conn.cursor()
-        self.batch_size = 300
 
-    def set_batch_size(self, size: int):
-        """Установка размера пакета"""
-        if size > 0:
-            self.batch_size = size
+    def close_connection(self):
+        self.conn.close()
 
-    def save_data(self, data_list: List[FilmWork | Person | Genre],
+    def get_table_row_count(self, table_name: str) -> int:
+        """Получение количества строк в таблице"""
+        try:
+            query = f"SELECT COUNT(*) as count FROM {table_name}"
+            result = self.cursor.execute(query)
+            return result[0]['count'] if result else 0
+        except Exception as e:
+            logger.error(f"Ошибка при получении количества строк в таблице {table_name}: {e}")
+            return 0
+
+    def save_data(self, batch: List[FilmWork | Person | Genre],
                   table_name: str, conflict_col: str = 'id'):
         """Сохранение данных в таблицы пачками с обработкой ошибок
 
@@ -31,20 +38,18 @@ class PostgresSaver:
             table_name: Имя таблицы
         """
 
-        if not data_list:
+        if not batch:
             logger.info("Нет данных для сохранения")
             return
         
         try:
-            column_names = [field.name for field in fields(data_list[0])]
+            column_names = [field.name for field in fields(batch[0])]
             column_names_str = ','.join(column_names)
             col_count = ', '.join(['%s'] * len(column_names))
 
-            for i in range(0, len(data_list), self.batch_size):
-                batch = data_list[i:i + self.batch_size]
-                self._save_batch(batch, table_name, column_names_str, col_count, conflict_col)
+            self._save_batch(batch, table_name, column_names_str, col_count, conflict_col)
 
-            logger.info(f"Успешно сохранено {len(data_list)} записей в таблицу {table_name}")
+            logger.info(f"Успешно сохранено {len(batch)} записей в таблицу {table_name}")
 
         except Exception as e:
             logger.error(f"Критическая ошибка при сохранении данных: {e}")
