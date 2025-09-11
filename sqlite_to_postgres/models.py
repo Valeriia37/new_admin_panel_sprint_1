@@ -38,6 +38,7 @@ class Person:
     id: UUID
     full_name: str
     created: datetime.datetime = field(default=datetime.datetime.now(datetime.timezone.utc))
+    modified: datetime.datetime = field(default=datetime.datetime.now(datetime.timezone.utc))
 
     def __post_init__(self):
         if isinstance(self.id, str):

@@ -53,11 +53,7 @@ class SQLiteLoader:
 
     def load_film_work(self) -> Generator[List[FilmWork]]:
         """Загрузка данных из таблицы с фильмами"""
-        for batch in self._execute_query('SELECT id, ' \
-                                        'title, description, ' \
-                                        'creation_date, rating,' \
-                                        'type ' \
-                                        'FROM film_work'):
+        for batch in self._execute_query('SELECT * FROM film_work'):
             data: list[FilmWork] = []
             for result in batch:
                 try:
@@ -67,7 +63,9 @@ class SQLiteLoader:
                                     description=result['description'],
                                     creation_date=result['creation_date'],
                                     rating=result['rating'],
-                                    type=result['type'])
+                                    type=result['type'],
+                                    created=result['created_at'],
+                                    modified=result['updated_at'])
                     data.append(film)
                 except Exception as e:
                     logger.error(f"Ошибка обработки строки фильма: {e}")
@@ -84,7 +82,9 @@ class SQLiteLoader:
                 try:
                     result = dict(result)
                     person = Person(id=result['id'],
-                                full_name=result['full_name'])
+                                    full_name=result['full_name'],
+                                    created=result['created_at'],
+                                    modified=result['updated_at'])
                     data.append(person)
                 except Exception as e:
                     logger.error(f"Ошибка обработки строки персоны: {e}")
@@ -102,7 +102,9 @@ class SQLiteLoader:
                     result = dict(result)
                     genre = Genre(id=result['id'],
                                 name=result['name'],
-                                description=result['description'])
+                                description=result['description'],
+                                created=result['created_at'],
+                                modified=result['updated_at'])
                     data.append(genre)
                 except Exception as e:
                     logger.error(f"Ошибка обработки строки жанра: {e}")
@@ -120,7 +122,8 @@ class SQLiteLoader:
                     result = dict(result)
                     genre_film = GenreFilmWork(id=result['id'],
                                             genre_id=result['genre_id'],
-                                            film_work_id=result['film_work_id'])
+                                            film_work_id=result['film_work_id'],
+                                            created=result['created_at'])
                     data.append(genre_film)
                 except Exception as e:
                     logger.error(f"Ошибка обработки строки genre_film_work: {e}")
@@ -139,7 +142,8 @@ class SQLiteLoader:
                     person_film = PersonFilmWork(id=result['id'],
                                                 person_id=result['person_id'],
                                                 film_work_id=result['film_work_id'],
-                                                role=result['role'])
+                                                role=result['role'],
+                                                created=result['created_at'])
                     data.append(person_film)
                 except Exception as e:
                     logger.error(f"Ошибка обработки строки person_film_work: {e}")

@@ -34,8 +34,9 @@ class PostgresSaver:
         """Сохранение данных в таблицы пачками с обработкой ошибок
 
         Args:
-            data_list: Список объектов для сохранения
+            batch: Список объектов для сохранения
             table_name: Имя таблицы
+            conflict_col: Поля, по которым происходит контроль уникальности
         """
 
         if not batch:
@@ -57,7 +58,15 @@ class PostgresSaver:
 
     def _save_batch(self, batch: List[FilmWork | Person | Genre], table_name: str, 
                     column_names_str: str, col_count: str, conflict_col: str):
-        """Сохранение одного пакета данных"""
+        """Сохранение одного пакета данных
+
+        Args:
+            batch: Список объектов для сохранения
+            table_name: Имя таблицы
+            column_names_str: строка со списком наименований колонок
+            col_count: строка с %S
+            conflict_col: Поля, по которым происходит контроль уникальности
+        """
         try:
             bind_values = ','.join(self.cursor.mogrify(f"({col_count})", astuple(item)).decode('utf-8') for item in batch)
 
