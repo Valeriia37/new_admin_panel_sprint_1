@@ -68,10 +68,10 @@ class PostgresSaver:
             conflict_col: Поля, по которым происходит контроль уникальности
         """
         try:
-            bind_values = ','.join(self.cursor.mogrify(f"({col_count})", astuple(item)).decode('utf-8') for item in batch)
+            bind_values = ','.join(self.cursor.mogrify(f"({col_count})", astuple(item)) for item in batch)
 
             query = (f"""INSERT INTO {table_name} ({column_names_str}) 
-                    VALUES {bind_values} '
+                    VALUES {bind_values} 
                     ON CONFLICT ({conflict_col}) DO NOTHING""")
 
             self.cursor.execute(query)

@@ -1,6 +1,7 @@
 from uuid import UUID, uuid4
 import datetime
-# from typing import Optional
+from datetime import timezone
+from dateutil import parser
 from dataclasses import dataclass, field
 
 
@@ -17,7 +18,11 @@ class FilmWork:
 
     def __post_init__(self):
         if isinstance(self.id, str):
-            self.id = UUID(self.id)
+            object.__setattr__(self, 'id', UUID(self.id))
+        if isinstance(self.created, str):
+            object.__setattr__(self, 'created', parser.isoparse(self.created).replace(tzinfo=timezone.utc))
+        if isinstance(self.created, str):
+            object.__setattr__(self, 'modified', parser.isoparse(self.modified).replace(tzinfo=timezone.utc))
 
 
 @dataclass
@@ -30,7 +35,11 @@ class Genre:
 
     def __post_init__(self):
         if isinstance(self.id, str):
-            self.id = UUID(self.id)
+            object.__setattr__(self, 'id', UUID(self.id))
+        if isinstance(self.created, str):
+            object.__setattr__(self, 'created', parser.isoparse(self.created).replace(tzinfo=timezone.utc))
+        if isinstance(self.created, str):
+            object.__setattr__(self, 'modified', parser.isoparse(self.modified).replace(tzinfo=timezone.utc))
 
 
 @dataclass
@@ -42,10 +51,14 @@ class Person:
 
     def __post_init__(self):
         if isinstance(self.id, str):
-            self.id = UUID(self.id)
+            object.__setattr__(self, 'id', UUID(self.id))
+        if isinstance(self.created, str):
+            object.__setattr__(self, 'created', parser.isoparse(self.created).replace(tzinfo=timezone.utc))
+        if isinstance(self.created, str):
+            object.__setattr__(self, 'modified', parser.isoparse(self.modified).replace(tzinfo=timezone.utc))
 
 
-@dataclass(frozen=True)
+@dataclass
 class GenreFilmWork:
     id: UUID
     genre_id: UUID
@@ -54,14 +67,16 @@ class GenreFilmWork:
 
     def __post_init__(self):
         if isinstance(self.id, str):
-            self.id = UUID(self.id)
+            object.__setattr__(self, 'id', UUID(self.id))
         if isinstance(self.genre_id, str):
-            self.genre_id = UUID(self.genre_id)
+            object.__setattr__(self, 'genre_id', UUID(self.genre_id))
         if isinstance(self.film_work_id, str):
-            self.film_work_id = UUID(self.film_work_id)
+            object.__setattr__(self, 'film_work_id', UUID(self.film_work_id))
+        if isinstance(self.created, str):
+            object.__setattr__(self, 'created', parser.isoparse(self.created).replace(tzinfo=timezone.utc))
 
 
-@dataclass(frozen=True)
+@dataclass
 class PersonFilmWork:
     id: UUID
     person_id: UUID
@@ -71,8 +86,10 @@ class PersonFilmWork:
 
     def __post_init__(self):
         if isinstance(self.id, str):
-            self.id = UUID(self.id)
+            object.__setattr__(self, 'id', UUID(self.id))
         if isinstance(self.person_id, str):
-            self.person_id = UUID(self.person_id)
+            object.__setattr__(self, 'person_id', UUID(self.person_id))
         if isinstance(self.film_work_id, str):
-            self.film_work_id = UUID(self.film_work_id)
+            object.__setattr__(self, 'film_work_id', UUID(self.film_work_id))
+        if isinstance(self.created, str):
+            object.__setattr__(self, 'created', parser.isoparse(self.created).replace(tzinfo=timezone.utc))

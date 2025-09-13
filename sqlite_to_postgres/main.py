@@ -21,20 +21,12 @@ def load_from_sqlite_to_postgres(connection: sqlite3.Connection, pg_conn: _conne
     postgres_saver = PostgresSaver(pg_conn)
     sqlite_loader = SQLiteLoader(connection)
 
-    for batch in sqlite_loader.load_film_work():
-        postgres_saver.save_data(batch, 'content.film_work')
+    conflict_fields = {'genre_film_work': 'genre_id, film_work_id',
+                       'person_film_work': 'person_id, film_work_id, role'}
 
-    for batch in sqlite_loader.load_genre():
-        postgres_saver.save_data(batch, 'content.genre')
-
-    for batch in sqlite_loader.load_person():
-        postgres_saver.save_data(batch, 'content.person')
-
-    for batch in sqlite_loader.load_genre_fim_work():
-        postgres_saver.save_data(batch, 'content.genre_film_work', 'genre_id, film_work_id')
-
-    for batch in sqlite_loader.load_person_fim_work():
-        postgres_saver.save_data(batch,'content.person_film_work', 'person_id, film_work_id')
+    for table_name in ['film_work', 'genre', 'person', 'genre_film_work', 'person_film_work']:
+        for batch in sqlite_loader.load_data(table_name):
+            postgres_saver.save_data(batch, f'content.{table_name}', conflict_fields.get(table_name, 'id'))
 
     logging.info('Данные из sqlite загружены в postgres')
 

@@ -3,6 +3,7 @@ import logging
 from uuid import UUID
 from models import FilmWork, Person, Genre, GenreFilmWork, PersonFilmWork
 from typing import List, Generator
+from dataclasses import fields
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -15,6 +16,15 @@ class SQLiteLoader:
         self.conn.row_factory = sqlite3.Row
         self.cursor = self.conn.cursor()
         self.batch_size = 100
+        self.transform_col_name = {'modified':'updated_at',
+                                   'created':'created_at'}
+        self.table_class_map = {
+            'person': Person,
+            'film_work': FilmWork,
+            'genre': Genre,
+            'genre_film_work': GenreFilmWork,
+            'person_film_work': PersonFilmWork
+        }
 
     def close_connection(self):
         self.conn.close()
@@ -34,7 +44,7 @@ class SQLiteLoader:
             logger.error(f"Ошибка при получении количества строк в таблице {table_name}: {e}")
             return 0
 
-    def _execute_query(self, query: str, params: tuple = None) -> Generator[List[sqlite3.Row]]:
+    def _execute_query(self, query: str, params: tuple = None) -> Generator[List[sqlite3.Row], None, None]:
         """Выполнение SQL запроса с обработкой ошибок"""
         try:
             if params:
@@ -51,104 +61,32 @@ class SQLiteLoader:
             logger.error(f"Неожиданная ошибка при выполнении запроса: {e}")
             raise
 
-    def load_film_work(self) -> Generator[List[FilmWork]]:
-        """Загрузка данных из таблицы с фильмами"""
-        for batch in self._execute_query('SELECT * FROM film_work'):
-            data: list[FilmWork] = []
+    def load_data(self, table_name) -> Generator[List[FilmWork | Person | Genre | PersonFilmWork | GenreFilmWork], None, None]:
+        """Загрузка данных из таблицы table_name"""
+        if table_name not in self.table_class_map.keys():
+            logger.error(f"Попытка загрузки данных с незарегистрированной таблицы - {table_name}")
+            raise ValueError(f"Попытка загрузки данных с незарегистрированной таблицы - {table_name}")
+        
+        object_class = self.table_class_map[table_name]
+        need_columns = [f.name for f in fields(object_class)]
+        fields_str = ''
+        for col in need_columns:
+            if col in self.transform_col_name.keys():
+                fields_str += f"{self.transform_col_name[col]} as {col}, "
+            else:
+                fields_str += f"{col}, "
+        fields_str = fields_str[:-2]
+        
+        for batch in self._execute_query(f'SELECT {fields_str} FROM {table_name}'):
+            data: List[FilmWork | Person | Genre | PersonFilmWork | GenreFilmWork] = []
             for result in batch:
                 try:
                     result = dict(result)
-                    film = FilmWork(id=result['id'],
-                                    title=result['title'],
-                                    description=result['description'],
-                                    creation_date=result['creation_date'],
-                                    rating=result['rating'],
-                                    type=result['type'],
-                                    created=result['created_at'],
-                                    modified=result['updated_at'])
+                    film = object_class(**result)
                     data.append(film)
                 except Exception as e:
-                    logger.error(f"Ошибка обработки строки фильма: {e}")
+                    logger.error(f"Ошибка обработки строки: {e}")
                     logger.error(f"Данные строки: {dict(result)}")
                     continue
-            logger.info(f"Успешно загружено {len(data)} записей из film_work")
-            yield data
-    
-    def load_person(self) -> Generator[List[Person]]:
-        """Загрузка данных из таблицы с персонами"""
-        for batch in self._execute_query('SELECT * FROM person'):
-            data: list[Person] = []
-            for result in batch:
-                try:
-                    result = dict(result)
-                    person = Person(id=result['id'],
-                                    full_name=result['full_name'],
-                                    created=result['created_at'],
-                                    modified=result['updated_at'])
-                    data.append(person)
-                except Exception as e:
-                    logger.error(f"Ошибка обработки строки персоны: {e}")
-                    logger.error(f"Данные строки: {dict(result)}")
-                    continue
-            logger.info(f"Успешно загружено {len(data)} записей из person")
-            yield data
-    
-    def load_genre(self) -> Generator[List[Genre]]:
-        """Загрузка данных из таблицы с жанрами"""
-        for batch in self._execute_query('SELECT * FROM genre'):
-            data: list[Genre] = []
-            for result in batch:
-                try:
-                    result = dict(result)
-                    genre = Genre(id=result['id'],
-                                name=result['name'],
-                                description=result['description'],
-                                created=result['created_at'],
-                                modified=result['updated_at'])
-                    data.append(genre)
-                except Exception as e:
-                    logger.error(f"Ошибка обработки строки жанра: {e}")
-                    logger.error(f"Данные строки: {dict(result)}")
-                    continue
-            logger.info(f"Успешно загружено {len(data)} записей из genre")
-            yield data
-    
-    def load_genre_fim_work(self) -> Generator[List[GenreFilmWork]]:
-        """Загрузка данных из таблицы с жанрами фильмов"""
-        for batch in self._execute_query('SELECT * FROM genre_film_work'):
-            data: list[GenreFilmWork] = []
-            for result in batch:
-                try:
-                    result = dict(result)
-                    genre_film = GenreFilmWork(id=result['id'],
-                                            genre_id=result['genre_id'],
-                                            film_work_id=result['film_work_id'],
-                                            created=result['created_at'])
-                    data.append(genre_film)
-                except Exception as e:
-                    logger.error(f"Ошибка обработки строки genre_film_work: {e}")
-                    logger.error(f"Данные строки: {dict(result)}")
-                    continue
-            logger.info(f"Успешно загружено {len(data)} записей из genre_film_work")
-            yield data
-    
-    def load_person_fim_work(self) -> Generator[List[PersonFilmWork]]:
-        """Загрузка данных из таблицы с персонами фильмов"""
-        for batch in self._execute_query('SELECT * FROM person_film_work'):
-            data: list[PersonFilmWork] = []
-            for result in batch:
-                try:
-                    result = dict(result)
-                    person_film = PersonFilmWork(id=result['id'],
-                                                person_id=result['person_id'],
-                                                film_work_id=result['film_work_id'],
-                                                role=result['role'],
-                                                created=result['created_at'])
-                    data.append(person_film)
-                except Exception as e:
-                    logger.error(f"Ошибка обработки строки person_film_work: {e}")
-                    logger.error(f"Данные строки: {dict(result)}")
-                    continue
-        
-            logger.info(f"Успешно загружено {len(data)} записей из person_film_work")
+            logger.info(f"Успешно загружено {len(data)} записей из {table_name}")
             yield data
