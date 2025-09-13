@@ -194,13 +194,13 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name="genrefilmwork",
             constraint=models.UniqueConstraint(
-                fields=("film_work_id", "genre_id"), name="unique_film_work_genre"
+                fields=("film_work_id", "genre_id"), name="film_work_genre_idx"
             ),
         ),
         migrations.AddConstraint(
             model_name="personfilmwork",
             constraint=models.UniqueConstraint(
-                fields=("film_work_id", "person_id"), name="unique_film_work_person"
+                fields=("film_work_id", "person_id"), name="film_work_person_role_idx"
             ),
         ),
         migrations.AddIndex(

@@ -177,10 +177,10 @@ CREATE UNIQUE INDEX film_work_genre_idx ON content.genre_film_work USING btree (
 
 
 --
--- Name: film_work_person_idx; Type: INDEX; Schema: content; Owner: app
+-- Name: film_work_person_role_idx; Type: INDEX; Schema: content; Owner: app
 --
 
-CREATE UNIQUE INDEX film_work_person_idx ON content.person_film_work USING btree (film_work_id, person_id);
+CREATE UNIQUE INDEX film_work_person_role_idx ON content.person_film_work USING btree (film_work_id, person_id, role);
 
 
 --
@@ -225,4 +225,3 @@ ALTER TABLE ONLY content.genre_film_work
 --
 
 \unrestrict kY6LDjgGTvFLdBe6FY8TCgcKwsiL4tTUWuQQvkg2tbyyVKBujYHimcMaYkGf6PY
-
